@@ -13,6 +13,8 @@ uniform float pointSize;
 
 #define M_PI 3.1415926535897932384626433832795
 
+varying float life;
+
 float azimuth( vec3 vector ) {
 	return atan( vector.z, - 1.0 * vector.x );
 }
@@ -34,6 +36,7 @@ void main() {
 
 	p.xyz = vec3( vec2( x, y ) * dimensions, 0. );
 
+	life = c.a/100.;
 	gl_PointSize = pointSize;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1. );
 
