@@ -7,6 +7,7 @@ import {
   Scene,
   PerspectiveCamera,
   WebGLRenderTarget,
+  WebGLMultisampleRenderTarget,
   ClampToEdgeWrapping,
   RawShaderMaterial,
   Vector2,
@@ -34,7 +35,7 @@ import { shader as clearVertexShader } from "./clear-vs.js";
 import { shader as clearFragmentShader } from "./clear-fs.js";
 
 var container, renderer, camera, controls, scene, sphere;
-var mesh, targets, simulationShader, textureShader, clearShader;
+var targets, simulationShader, textureShader, clearShader;
 var rtScene, rtQuad, rtCamera;
 var orthoScene, orthoMesh, orthoQuad, orthoCamera;
 var targetPos = 0,
@@ -135,17 +136,6 @@ function initScene() {
 
   pointsGeometry.addAttribute("position", new BufferAttribute(positions, 3));
 
-  // var particleMaterial = new RawShaderMaterial({
-  //   uniforms: {
-  //     positions: { value: rtTexturePos },
-  //   },
-  //   vertexShader: particleVertexShader,
-  //   fragmentShader: particleFragmentShader,
-  // });
-
-  //mesh = new Points(pointsGeometry, particleMaterial);
-  //scene.add( mesh );
-
   var tex = createRenderTarget();
 
   var texSize = 4096;
@@ -157,7 +147,7 @@ function initScene() {
 
   textureShader = new RawShaderMaterial({
     uniforms: {
-      pointSize: { value: renderer.devicePixelRatio },
+      pointSize: { value: window.devicePixelRatio },
       positions: { value: textureFBO[targetTexture].texture },
       dimensions: { value: new Vector2(texSize, texSize / 2) },
     },
@@ -242,14 +232,10 @@ function init() {
   renderer.setClearColor(0, 1);
   document.body.append(renderer.domElement);
 
-  if (isMobile.any) {
-    camera.position.set(0, 0, 0);
-    controls = new DeviceOrientationControls(camera);
-  } else {
-    camera.position.set(0, 0, 90);
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableZoom = false;
-  }
+  camera.position.set(0, 0, 90);
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableZoom = false;
+  controls.enablePan = false;
 
   initScene();
   onWindowResized();
@@ -293,8 +279,6 @@ function animate() {
   renderer.setRenderTarget(textureFBO[targetTexture]);
   renderer.render(orthoScene, orthoCamera);
   renderer.autoClear = true;
-
-  // mesh.material.uniforms.positions.value = targets[targetPos].texture;
 
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
