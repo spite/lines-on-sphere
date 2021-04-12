@@ -144,7 +144,9 @@ const rtQuad = new Mesh(
 );
 rtScene.add(rtQuad);
 
-renderer.render(rtScene, rtCamera, rtTexturePos);
+renderer.setRenderTarget(rtTexturePos);
+renderer.render(rtScene, rtCamera);
+renderer.setRenderTarget(null);
 
 const pointsGeometry = new BufferGeometry();
 const positions = new Float32Array(width * height * 3 * 3);
