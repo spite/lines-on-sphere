@@ -105,7 +105,7 @@ const rtTexturePos = new WebGLRenderTarget(width, height, {
   minFilter: NearestFilter,
   magFilter: NearestFilter,
   format: RGBAFormat,
-  type: FloatType,
+  type: HalfFloatType,
   stencilBuffer: false,
   depthBuffer: false,
   generateMipmaps: false,
