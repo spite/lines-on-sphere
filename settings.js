@@ -1,5 +1,5 @@
-import { shader as vs } from "../check-vs.js";
-import { shader as fs } from "../check-fs.js";
+import { shader as vs } from "./check-vs.js";
+import { shader as fs } from "./check-fs.js";
 
 const extensions = document
   .createElement("canvas")
