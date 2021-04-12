@@ -26,6 +26,8 @@ import {
 } from "./js/three.module.js";
 import { OrbitControls } from "./js/OrbitControls.module.js";
 
+console.log("FloatType");
+
 import { shader as simulationVertexShader } from "./simulation-vs.js";
 import { shader as simulationFragmentShader } from "./simulation-fs.js";
 import { shader as textureVertexShader } from "./texture-vs.js";
