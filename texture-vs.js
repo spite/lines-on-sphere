@@ -10,6 +10,7 @@ uniform mat4 projectionMatrix;
 uniform sampler2D positions;
 uniform vec2 dimensions;
 uniform float pointSize;
+uniform vec3 pointer;
 
 #define M_PI 3.1415926535897932384626433832795
 
@@ -36,8 +37,11 @@ void main() {
 
 	p.xyz = vec3( vec2( x, y ) * dimensions, 0. );
 
+	float d = length(c.xyz-normalize(pointer));
+
 	life = c.a/100.;
-	gl_PointSize = 1.;//	life * 10.;//pointSize;
+  float dist = 1.-clamp(length(c.xyz-normalize(pointer))*1., 0., 1.);
+	gl_PointSize = 1.*dist + life * 1. * pointSize;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1. );
 
 }`;

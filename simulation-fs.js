@@ -93,12 +93,14 @@ void main() {
 
 	vec4 c = texture2D( positions, vUv );
   float speed = 2. + .5 * sin(time);
-  // float d = length(c.xyz-normalize(pointer));
-  // if(d<.5){
-  //   speed = mix(0., speed, 2.*d);
-  // }
-	c.xyz += .00025 * curlNoise( speed * c.xyz + vec3( time, 0., 0. ) );
+  float d = length(c.xyz-normalize(pointer));
+  d = clamp(d, 0., 1.);
+  vec3 curlForce = .00025 * curlNoise( speed * c.xyz + vec3( time, 0., 0. ) );
+  c.xyz += curlForce;
 	c.xyz = normalize( c.xyz );
+  if(d<.5) {
+    c.xyz += curlForce *  5.*(.5-d);
+  }
 	c.a += .5;
 	if( c.a > 100. ) {
 		c = .5 * vec4( .5 - rand( c.xy ), .5 - rand( c.zy ), .5 - rand( c.xz ), 0. );

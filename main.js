@@ -115,8 +115,8 @@ const simulationShader = new RawShaderMaterial({
   uniforms: {
     original: { value: texture },
     positions: { value: texture },
-    time: { value: 0 },
     pointer: { value: new Vector3() },
+    time: { value: 0 },
   },
   vertexShader: simulationVertexShader,
   fragmentShader: simulationFragmentShader,
@@ -171,7 +171,8 @@ let targetTexture = 0;
 const textureShader = new RawShaderMaterial({
   uniforms: {
     time: { value: performance.now() },
-    colorise: { value: 1 },
+    colorise: { value: 0 },
+    pointer: { value: new Vector3() },
     pointSize: { value: window.devicePixelRatio },
     positions: { value: textureFBO[targetTexture].texture },
     dimensions: { value: new Vector2(texSize, texSize / 2) },
@@ -228,7 +229,10 @@ renderer.domElement.addEventListener("pointermove", (e) => {
   mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 });
 
-// renderer.domElement.addEventListener("click", (e) => {});
+document.querySelector("#toggle_color").addEventListener("click", (e) => {
+  textureShader.uniforms.colorise.value =
+    1 - textureShader.uniforms.colorise.value;
+});
 
 function onWindowResized(event) {
   var w = window.innerWidth;
@@ -247,12 +251,14 @@ function animate() {
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObject(sphere);
   if (intersects.length) {
+    textureShader.uniforms.pointer.value.copy(intersects[0].point);
     simulationShader.uniforms.pointer.value.copy(intersects[0].point);
   }
 
-  controls.update();
-
   const t = 0.0001 * performance.now();
+
+  sphere.rotation.y = -0.1 * t;
+
   simulationShader.uniforms.time.value = t;
   simulationShader.uniforms.positions.value = targets[targetPos].texture;
   targetPos = 1 - targetPos;
