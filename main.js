@@ -92,13 +92,7 @@ for (let i = 0, l = width * height; i < l; i++) {
   data[i * 4 + 3] = Math.random() * 100; // frames life
 }
 
-const texture = new DataTexture(
-  data,
-  width,
-  height,
-  RGBAFormat,
-  canDoColorBufferFloat ? FloatType : HalfFloatType
-);
+const texture = new DataTexture(data, width, height, RGBAFormat, FloatType);
 texture.minFilter = NearestFilter;
 texture.magFilter = NearestFilter;
 texture.needsUpdate = true;
@@ -109,7 +103,7 @@ const rtTexturePos = new WebGLRenderTarget(width, height, {
   minFilter: NearestFilter,
   magFilter: NearestFilter,
   format: RGBAFormat,
-  type: canDoColorBufferFloat ? FloatType : HalfFloatType,
+  type: FloatType,
   stencilBuffer: false,
   depthBuffer: false,
   generateMipmaps: false,
