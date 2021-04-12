@@ -26,8 +26,6 @@ import {
 } from "./js/three.module.js";
 import { OrbitControls } from "./js/OrbitControls.module.js";
 
-console.log("FloatType");
-
 import { shader as simulationVertexShader } from "./simulation-vs.js";
 import { shader as simulationFragmentShader } from "./simulation-fs.js";
 import { shader as textureVertexShader } from "./texture-vs.js";
@@ -35,11 +33,11 @@ import { shader as textureFragmentShader } from "./texture-fs.js";
 import { shader as clearVertexShader } from "./clear-vs.js";
 import { shader as clearFragmentShader } from "./clear-fs.js";
 
-import { canDoColorBufferFloat } from "./settings.js";
+import { canDoFloatLinear } from "./settings.js";
 
 const renderer = new WebGL1Renderer({
   antialias: true,
-  preserveDrawingBuffer: true,
+  powerPreference: "high-performance",
 });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0, 1);
@@ -105,7 +103,7 @@ const rtTexturePos = new WebGLRenderTarget(width, height, {
   minFilter: NearestFilter,
   magFilter: NearestFilter,
   format: RGBAFormat,
-  type: HalfFloatType,
+  type: canDoFloatLinear() ? FloatType : HalfFloatType,
   stencilBuffer: false,
   depthBuffer: false,
   generateMipmaps: false,

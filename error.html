@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Lines on Sphere</title>
+    <title>Lines on Sphere - Error</title>
     <meta charset="utf-8" />
     <meta property="og:image" content="cover.png" />
     <meta
@@ -23,23 +23,24 @@
         background-color: #222;
         margin: 0px;
         overflow: hidden;
-      }
-      #container canvas {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        align-content: center;
+        flex: 1;
+        flex-direction: column;
+        height: 100%;
         position: absolute;
         left: 0;
         top: 0;
-        width: 100%;
-        height: 100%;
+        right: 0;
         bottom: 0;
       }
     </style>
   </head>
-  <body></body>
-  <script type="module">
-    import { canDoFloatLinear } from "./settings.js";
-    if (!canDoFloatLinear()) {
-      window.location = "./error.html";
-    }
-  </script>
-  <script src="main.js" type="module"></script>
+  <body>
+    <p>This experience needs floating point textures.</p>
+    <p>You're probably running it on an iOS device, probably an iPhone.</p>
+    <p>Sorry about that. You should complain to Apple.</p>
+  </body>
 </html>
