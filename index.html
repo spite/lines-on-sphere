@@ -14,7 +14,8 @@
         margin: 0;
         padding: 0;
         touch-action: none;
-        cursor: none;
+        cursor: crosshair;
+        font-family: sans-serif;
       }
       body {
         color: #ffffff;
@@ -32,9 +33,19 @@
         height: 100%;
         bottom: 0;
       }
+      #toggle_color {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        padding: 2em;
+        z-index: 100;
+        cursor: pointer;
+      }
     </style>
   </head>
-  <body></body>
+  <body>
+    <p id="toggle_color">Toggle color</p>
+  </body>
   <script type="module">
     import { canDoFloatLinear } from "./settings.js";
     if (!canDoFloatLinear()) {
