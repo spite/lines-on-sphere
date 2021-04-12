@@ -3,7 +3,7 @@ import {
   RGBAFormat,
   FloatType,
   NearestFilter,
-  WebGLRenderer,
+  WebGL1Renderer,
   Scene,
   PerspectiveCamera,
   WebGLRenderTarget,
@@ -35,7 +35,7 @@ import { shader as clearFragmentShader } from "./clear-fs.js";
 
 import { canDoColorBufferFloat } from "./settings.js";
 
-const renderer = new WebGLRenderer({
+const renderer = new WebGL1Renderer({
   antialias: true,
   preserveDrawingBuffer: true,
 });
