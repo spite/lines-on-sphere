@@ -7,6 +7,7 @@ import {
   Scene,
   PerspectiveCamera,
   WebGLRenderTarget,
+  Raycaster,
   ClampToEdgeWrapping,
   RawShaderMaterial,
   Vector2,
@@ -21,6 +22,7 @@ import {
   BufferAttribute,
   Points,
   RepeatWrapping,
+  HalfFloatType,
 } from "./js/three.module.js";
 import { OrbitControls } from "./js/OrbitControls.module.js";
 
@@ -31,12 +33,7 @@ import { shader as textureFragmentShader } from "./texture-fs.js";
 import { shader as clearVertexShader } from "./clear-vs.js";
 import { shader as clearFragmentShader } from "./clear-fs.js";
 
-var targets, simulationShader, textureShader, clearShader;
-var rtScene, rtQuad, rtCamera;
-var orthoScene, orthoMesh, orthoQuad, orthoCamera;
-var targetPos = 0,
-  targetTexture = 0;
-var textureFBO;
+import { canDoColorBufferFloat } from "./settings.js";
 
 const renderer = new WebGLRenderer({
   antialias: true,
@@ -77,16 +74,16 @@ function createRenderTarget() {
   });
 }
 
-var width = isMobile.any ? 128 : 256;
-var height = isMobile.any ? 128 : 256;
+const width = isMobile.any ? 128 : 256;
+const height = isMobile.any ? 128 : 256;
 
-var data = new Float32Array(width * height * 4);
+const data = new Float32Array(width * height * 4);
 
-var r = 1;
-for (var i = 0, l = width * height; i < l; i++) {
-  var phi = Math.random() * 2 * Math.PI;
-  var costheta = Math.random() * 2 - 1;
-  var theta = Math.acos(costheta);
+let r = 1;
+for (let i = 0, l = width * height; i < l; i++) {
+  const phi = Math.random() * 2 * Math.PI;
+  const costheta = Math.random() * 2 - 1;
+  const theta = Math.acos(costheta);
   r = 0.85 + 0.15 * Math.random();
 
   data[i * 4] = r * Math.sin(theta) * Math.cos(phi);
@@ -95,38 +92,45 @@ for (var i = 0, l = width * height; i < l; i++) {
   data[i * 4 + 3] = Math.random() * 100; // frames life
 }
 
-var texture = new DataTexture(data, width, height, RGBAFormat, FloatType);
+const texture = new DataTexture(
+  data,
+  width,
+  height,
+  RGBAFormat,
+  canDoColorBufferFloat ? FloatType : HalfFloatType
+);
 texture.minFilter = NearestFilter;
 texture.magFilter = NearestFilter;
 texture.needsUpdate = true;
 
-var rtTexturePos = new WebGLRenderTarget(width, height, {
+const rtTexturePos = new WebGLRenderTarget(width, height, {
   wrapS: ClampToEdgeWrapping,
   wrapT: ClampToEdgeWrapping,
   minFilter: NearestFilter,
   magFilter: NearestFilter,
   format: RGBAFormat,
-  type: FloatType,
+  type: canDoColorBufferFloat ? FloatType : HalfFloatType,
   stencilBuffer: false,
   depthBuffer: false,
   generateMipmaps: false,
 });
 
-targets = [rtTexturePos, rtTexturePos.clone()];
+const targets = [rtTexturePos, rtTexturePos.clone()];
 
-simulationShader = new RawShaderMaterial({
+const simulationShader = new RawShaderMaterial({
   uniforms: {
     original: { value: texture },
     positions: { value: texture },
     time: { value: 0 },
+    pointer: { value: new Vector3() },
   },
   vertexShader: simulationVertexShader,
   fragmentShader: simulationFragmentShader,
   side: DoubleSide,
 });
 
-rtScene = new Scene();
-rtCamera = new OrthographicCamera(
+const rtScene = new Scene();
+const rtCamera = new OrthographicCamera(
   -width / 2,
   width / 2,
   -height / 2,
@@ -134,17 +138,20 @@ rtCamera = new OrthographicCamera(
   -500,
   1000
 );
-rtQuad = new Mesh(new PlaneBufferGeometry(width, height), simulationShader);
+const rtQuad = new Mesh(
+  new PlaneBufferGeometry(width, height),
+  simulationShader
+);
 rtScene.add(rtQuad);
 
 renderer.render(rtScene, rtCamera, rtTexturePos);
 
-var pointsGeometry = new BufferGeometry();
-var positions = new Float32Array(width * height * 3 * 3);
-var ptr = 0;
+const pointsGeometry = new BufferGeometry();
+const positions = new Float32Array(width * height * 3 * 3);
+let ptr = 0;
 
-for (var y = 0; y < height; y++) {
-  for (var x = 0; x < width; x++) {
+for (let y = 0; y < height; y++) {
+  for (let x = 0; x < width; x++) {
     positions[ptr] = x / width;
     positions[ptr + 1] = y / width;
     positions[ptr + 2] = 0;
@@ -154,18 +161,21 @@ for (var y = 0; y < height; y++) {
 
 pointsGeometry.setAttribute("position", new BufferAttribute(positions, 3));
 
-var tex = createRenderTarget();
+const tex = createRenderTarget();
 
-var texSize = 4096;
+const texSize = 4096;
 tex.setSize(texSize, texSize / 2);
-textureFBO = [tex, tex.clone()];
+const textureFBO = [tex, tex.clone()];
 
 textureFBO[0].texture.wrapS = textureFBO[0].texture.wrapT = RepeatWrapping;
 textureFBO[1].texture.wrapS = textureFBO[1].texture.wrapT = RepeatWrapping;
 
-textureShader = new RawShaderMaterial({
+let targetTexture = 0;
+
+const textureShader = new RawShaderMaterial({
   uniforms: {
     time: { value: performance.now() },
+    colorise: { value: 1 },
     pointSize: { value: window.devicePixelRatio },
     positions: { value: textureFBO[targetTexture].texture },
     dimensions: { value: new Vector2(texSize, texSize / 2) },
@@ -176,8 +186,8 @@ textureShader = new RawShaderMaterial({
   transparent: true,
 });
 
-orthoScene = new Scene();
-orthoCamera = new OrthographicCamera(
+const orthoScene = new Scene();
+const orthoCamera = new OrthographicCamera(
   -tex.width / 2,
   tex.width / 2,
   -tex.height / 2,
@@ -185,10 +195,10 @@ orthoCamera = new OrthographicCamera(
   -1000,
   1000
 );
-orthoMesh = new Points(pointsGeometry, textureShader);
+const orthoMesh = new Points(pointsGeometry, textureShader);
 orthoScene.add(orthoMesh);
 
-clearShader = new RawShaderMaterial({
+const clearShader = new RawShaderMaterial({
   uniforms: {
     texture: { value: texture.texture },
   },
@@ -198,7 +208,7 @@ clearShader = new RawShaderMaterial({
   transparent: true,
 });
 
-orthoQuad = new Mesh(
+const orthoQuad = new Mesh(
   new PlaneBufferGeometry(tex.width, tex.height),
   clearShader
 );
@@ -214,11 +224,15 @@ const sphere = new Mesh(
 );
 scene.add(sphere);
 
-onWindowResized();
+const raycaster = new Raycaster();
+const mouse = new Vector2();
 
-window.addEventListener("resize", onWindowResized);
+renderer.domElement.addEventListener("pointermove", (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+});
 
-animate();
+// renderer.domElement.addEventListener("click", (e) => {});
 
 function onWindowResized(event) {
   var w = window.innerWidth;
@@ -229,8 +243,16 @@ function onWindowResized(event) {
   camera.updateProjectionMatrix();
 }
 
+let targetPos = 0;
+
 function animate() {
   renderer.setAnimationLoop(animate);
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObject(sphere);
+  if (intersects.length) {
+    simulationShader.uniforms.pointer.value.copy(intersects[0].point);
+  }
 
   controls.update();
 
@@ -260,3 +282,9 @@ function animate() {
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
 }
+
+onWindowResized();
+
+window.addEventListener("resize", onWindowResized);
+
+animate();

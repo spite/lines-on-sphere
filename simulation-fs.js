@@ -4,6 +4,7 @@ precision highp float;
 uniform sampler2D positions;
 uniform sampler2D original;
 uniform float time;
+uniform vec3 pointer;
 
 varying vec2 vUv;
 
@@ -91,7 +92,12 @@ float rand(vec2 co){
 void main() {
 
 	vec4 c = texture2D( positions, vUv );
-	c.xyz += .00025 * curlNoise( 2. * c.xyz + vec3( time, 0., 0. ) );
+  float speed = 2. + .5 * sin(time);
+  // float d = length(c.xyz-normalize(pointer));
+  // if(d<.5){
+  //   speed = mix(0., speed, 2.*d);
+  // }
+	c.xyz += .00025 * curlNoise( speed * c.xyz + vec3( time, 0., 0. ) );
 	c.xyz = normalize( c.xyz );
 	c.a += .5;
 	if( c.a > 100. ) {

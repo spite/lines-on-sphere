@@ -37,7 +37,7 @@ void main() {
 	p.xyz = vec3( vec2( x, y ) * dimensions, 0. );
 
 	life = c.a/100.;
-	gl_PointSize = pointSize;
+	gl_PointSize = 1.;//	life * 10.;//pointSize;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1. );
 
 }`;
